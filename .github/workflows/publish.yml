@@ -56,12 +56,6 @@ jobs:
       - name: Copy ipynb to repo root
         run: cp _site/hw03.ipynb hw03.ipynb
 
-      - name: Verify ipynb exists
-        run: |
-          pwd
-          ls -lh hw03.ipynb
-          ls -lh _site/hw03.ipynb
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -83,6 +77,4 @@ jobs:
           push: true
           tags: |
             ghcr.io/jisu-kim-stat/my-r-env:latest
-            ghcr.io/jisu-kim-stat/my-r-env:hw03
-
           provenance: false

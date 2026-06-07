@@ -47,7 +47,7 @@ ENV HOME=/home/rstudio
 RUN chmod -R a+rwx /home/rstudio
 
 # label 추가
-LABEL org.opencontainers.image.source="https://github.com/snu-stat/hw3-jisu-kim-stat"
+LABEL org.opencontainers.image.source="https://github.com/snu-stat/hw3-2-jisu-kim-stat"
 
 EXPOSE 8888
 

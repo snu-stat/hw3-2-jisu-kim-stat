@@ -663,6 +663,12 @@ WORKDIR /home/rstudio
 ```
 
 ### 답안
+로컬 저장소 최상위 디렉토리에 `Dockerfile`을 추가하여 숙제 3 실행 환경을 컨테이너로 구성하였다. 기반 이미지는 R과 tidyverse가 포함된 `rocker/tidyverse:4.4.0`을 사용하였고, 분석에 필요한 시스템 패키지와 Miniconda를 설치하였다.
+
+또한 reticulate에서 사용할 Python 환경을 만들고, 필요한 Python 패키지와 R 패키지를 함께 설치하였다. 마지막으로 `RETICULATE_PYTHON` 환경 변수를 설정하여 R에서 지정된 Python 환경을 사용하도록 하였으며, 기본 작업 디렉토리를 `/home/rstudio`로 지정하였다.
+
+이를 통해 GitHub Actions에서 동일한 분석 환경을 가진 Docker 이미지를 빌드하고 GHCR에 업로드할 수 있도록 하였다.
+
 ![Dockerfile](3-1.png)
 
 ## 문제 3-2. GitHub Actions 워크플로우 수정
@@ -688,6 +694,10 @@ WORKDIR /home/rstudio
 ```
 
 ### 답안
+숙제 2에서 사용한 `publish.yml`을 수정하여 Docker 이미지 빌드와 GHCR push 단계를 추가하였다. Quarto 렌더링과 GitHub Pages 배포가 끝난 뒤, 현재 저장소를 기준으로 Docker 이미지를 빌드하고 `ghcr.io/jisu-kim-stat/my-r-env:latest`로 업로드하도록 설정하였다.
+
+또한 새 과제 저장소에서는 기존 secret이 자동으로 전달되지 않았기 때문에, `CR_PAT` secret을 새로 등록하여 GHCR 로그인에 사용하였다. 이를 통해 GitHub Actions가 Quarto 결과물 생성, Pages 배포, Docker 이미지 빌드 및 GHCR push를 순서대로 수행하도록 구성하였다.
+
 ![publish.yml 수정](3-2.png)
 
 ## 문제 3-3. GitHub Pages에 Binder 링크 추가
@@ -713,11 +723,32 @@ GitHub Page를 사용하여 저장소를 웹페이지로 활용하는 부분은 
 작업을 GitHub 원격 저장소로 push한 후 숙제 2 문제 3-3의 3, 4번 과정을 반복하라.
 
 ### 답안
+먼저 저장소 최상위의 `README.md` 파일을 수정하였다. README에는 숙제 제목, 이름, 학번을 작성하고, 분석 리포트 HTML 파일과 Binder에서 실행할 수 있는 주피터 노트북 링크를 함께 추가하였다. Binder 링크는 `gh-pages` 브랜치에 배포된 `hw03.ipynb` 파일을 열도록 설정하였다.
+
 ![README.md 수정](3-3_readme.png)
-![gh-pages brance 생성 확인](3-3_1.png)
+
+이후 GitHub Actions가 실행되면서 Quarto 문서가 렌더링되고, GitHub Pages 배포용 `gh-pages` 브랜치가 생성된 것을 확인하였다. 이 브랜치에는 웹페이지로 배포될 HTML 파일과 Binder에서 사용할 `hw03.ipynb`, `requirements.txt`가 포함된다.
+
+![gh-pages branch 생성 확인](3-3_1.png)
+
+GitHub Pages 설정에서 배포 대상 브랜치를 `gh-pages`로 지정하였다. 이를 통해 `gh-pages` 브랜치에 있는 렌더링 결과물이 GitHub Pages 웹페이지로 공개되도록 설정하였다.
+
 ![폴더를 gh-pages 브랜치로 변경](3-3_2.png)
+
+설정 후 GitHub Actions workflow가 정상적으로 종료되었는지 확인하였다. workflow에서는 Quarto 렌더링, `hw03.ipynb` 생성, Binder 실행 환경을 위한 `requirements.txt` 복사, GitHub Pages 배포가 순서대로 수행된다.
+
 ![워크플로우 종료 확인](3-3_3.png)
+
+이후 GitHub Pages 주소에 접속하여 README 기반 웹페이지가 정상적으로 표시되는 것을 확인하였다. 웹페이지에는 분석 리포트 HTML 링크와 Binder 노트북 링크가 함께 나타난다.
+
 ![웹페이지 접속 확인](3-3_4.png)
+
+마지막으로 웹페이지에서 링크들이 정상적으로 표시되는지 다시 확인하였다. 이를 통해 GitHub Pages 배포가 완료되었고, Binder를 통해 온라인에서 `hw03.ipynb` 노트북을 실행할 수 있도록 설정되었음을 확인하였다.
+
 ![웹페이지 접속 확인 2](3-3_4_웹페이지.png)
 
+수정된 과제 안내에 따라 README의 Binder 링크를 `https://mybinder.org/v2/gh/snu-stat/hw3-2-jisu-kim-stat/gh-pages?filepath=hw03.ipynb` 형식으로 수정하였다.
 
+수정 후 Binder가 저장소와 `gh-pages` 브랜치는 정상적으로 인식했지만, 실행 환경 명세 파일이 없어 `No environment specification found` 오류가 발생하였다. 이를 해결하기 위해 저장소 최상위에 `requirements.txt` 파일을 추가하고, 노트북 실행에 필요한 Python 패키지 목록을 작성하였다. 또한 GitHub Pages에는 `_site/` 디렉토리만 배포되므로, workflow에서 `requirements.txt`를 `_site/requirements.txt`로 복사하는 단계를 추가하였다.
+
+최종적으로 GitHub Actions가 Quarto 문서를 렌더링하여 HTML과 `hw03.ipynb`를 생성하고, `requirements.txt`를 함께 `gh-pages` 브랜치에 배포하도록 설정하였다. 이를 통해 GitHub Pages 웹페이지에서 Binder 링크를 통해 온라인으로 `hw03.ipynb` 노트북을 실행할 수 있도록 구성하였다.

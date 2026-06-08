@@ -56,6 +56,9 @@ jobs:
       - name: Copy ipynb to repo root
         run: cp _site/hw03.ipynb hw03.ipynb
 
+      - name: Copy Binder requirements to site
+        run: cp requirements.txt _site/requirements.txt
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
